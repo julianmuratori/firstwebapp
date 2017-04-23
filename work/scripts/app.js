@@ -1,11 +1,11 @@
 // Copyright 2016 Google Inc.
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 //      http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -51,8 +51,13 @@
     var key = selected.value;
     var label = selected.textContent;
     // TODO init the app.selectedCities array here
+    if (!app.selectedCities) {
+      app.selectedCities = [];
+    }
     app.getForecast(key, label);
     // TODO push the selected city to the array and save here
+    app.selectedCities.push({key: key, label: label});
+    app.saveSelectedCities();
     app.toggleAddDialog(false);
   });
 
@@ -198,6 +203,11 @@
 
   // TODO add saveSelectedCities function here
 
+  app.saveSelectedCities = function() {
+    var selectedCities = JSON.stringify(app.selectedCities);
+    localStorage.selectedCities = selectedCities;
+  }
+
   app.getIconClass = function(weatherCode) {
     // Weather codes: https://developer.yahoo.com/weather/documentation.html#codes
     weatherCode = parseInt(weatherCode);
@@ -303,9 +313,32 @@
     }
   };
   // TODO uncomment line below to test app with fake data
-  //app.updateForecastCard(initialWeatherForecast);
+  // app.updateForecastCard(initialWeatherForecast);
 
   // TODO add startup code here
 
+  app.selectedCities = localStorage.selectedCities;
+  if (app.selectedCities) {
+    app.selectedCities = JSON.parse(app.selectedCities);
+    app.selectedCities.forEach(function(city) {
+      app.getForecast(city.key, city.label);
+    });
+  } else {
+    app.updateForecastCard(initialWeatherForecast);
+    app.selectedCities = [
+      { key: initialWeatherForecast.key,
+        label: initialWeatherForecast.label
+      }
+    ];
+    app.saveSelectedCities();
+  }
+
   // TODO add service worker code here
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker
+      .register('./service-worker.js')
+      .then(function() {
+        console.log('Service Worker Registered')
+      });
+  };
 })();
